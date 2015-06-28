@@ -2,7 +2,7 @@ var directRegex = /\/video\/.*\.html/g,
     currentLink = window.location.href;
 
 var matchSfastLinks = function() {
-  var link = $('a.link[href*="-sfast.html"]:first').attr("href");
+  var link = $('a.link[href*="-sfast.html"]').attr("href");
 
   $.get(link, function(nextPage) {
     var newLink   = nextPage.match(directRegex).toString();
@@ -18,25 +18,18 @@ var addDirectLink = function(link) {
 }
 
 var removeSuperwebMenu = function() {
-  console.log($('#html5_b'));
   if ($('#html5_b').length > 0) {
     var player = $('#html5');
-
-    $('head').empty();
-    $('body').empty();
-
-    $('body').append(player);
   } else if (currentLink.includes('/3/')) {
     window.location.href = currentLink.replace('/3/', '/1/');
   } else {
     var player = $('#jw6');
-
-    $('head').empty();
-    $('body').empty();
-
-    $('body').append(player);
   }
 
+  $('head').empty();
+  $('body').empty();
+
+  $('body').append(player);
 }
 
 if (currentLink.includes("/video/")) {
