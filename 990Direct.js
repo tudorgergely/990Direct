@@ -18,18 +18,26 @@ var addDirectLink = function(link) {
 }
 
 var removeSuperwebMenu = function() {
-  if ($('#html5_b').length > 0) {
-    var player = $('#html5');
-  } else if (currentLink.includes('/3/')) {
+  if ($('#html5_b').length === 0 && currentLink.includes('/3/')) {
     window.location.href = currentLink.replace('/3/', '/1/');
-  } else {
-    var player = $('#jw6');
   }
 
-  $('head').empty();
-  $('body').empty();
+  var player1 = $('#jw6'),
+      player2 = $('#jw5'),
+      html5   = $('#html5');
 
-  $('body').append(player);
+  var player = html5,
+      topbar = $('.hline');
+
+  if (player.length === 0) {
+    player = player2;
+  }
+
+  if (player.length === 0) {
+    player = player1;
+  }
+
+  $('.all').remove();
 }
 
 if (currentLink.includes("/video/")) {
