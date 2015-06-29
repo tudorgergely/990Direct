@@ -1,48 +1,101 @@
 var directRegex = /\/video\/.*\.html/g,
     currentLink = window.location.href;
 
-var matchSfastLinks = function() {
-  var link = $('a.link[href*="-sfast.html"]').attr("href");
+var init = function() {
+  chrome.storage.sync.set({ 'current': currentLink });
+}
 
-  $.get(link, function(nextPage) {
-    var newLink   = nextPage.match(directRegex).toString();
+var getPageSync = function(link) {
+  var page;
 
-    newLink = 'http://superweb.rol.ro' + newLink.replace('/video/', '/video/3/');
+  $.ajax({
+    url: link,
+    type: 'get',
+    dataType: 'html',
+    async: false,
+    success: function (nextPage) {
+      page = nextPage;
+    }
+  });
 
-    addDirectLink(newLink);
+  return page;
+}
+
+var matchSfastLinks = function(page) {
+  var link = 'http://990.ro/' + $(page).find('a.link[href*="-sfast.html"]').attr('href'),
+      finalLink;
+
+  if (link !== undefined) {
+    finalLink = getPageSync(link).match(directRegex).toString();
+    finalLink = 'http://superweb.rol.ro' + finalLink.replace('/video/', '/video/3/');
+    
+    return finalLink;
+  }
+
+  return "";
+}
+
+var addDirectLink = function(link, text, upperElement, id, style) {
+  if (link === '') {
+    link = '#';
+    text = 'Not available';
+  }
+
+  var element = '<a id=' + id + ' href="' + link + '" style=' + style + '>' + text + '</a>';
+  $(element).insertAfter(upperElement);
+}
+
+var getCurrentLink = function() {
+  var currentDirectLink = matchSfastLinks(getPageSync(currentLink));
+  
+  addDirectLink(currentDirectLink, 'Link direct', '#content div:first');
+}
+
+var prepPrev = function() {
+  chrome.storage.sync.get('current', function(result) {
+    var prev     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul anterior")').attr('href'),
+        prevLink = matchSfastLinks(getPageSync(prev));
+
+    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton', 'margin: 10px;');
+    
+    $('#prevButton').click(function() {
+      chrome.storage.sync.set({ 'current': prev });
+
+      return true;
+    });
   });
 }
 
-var addDirectLink = function(link) {
-  $('<a href=' + link + '>Link direct</a>').insertAfter('#content div:first');
+var prepNext = function() {
+  chrome.storage.sync.get('current', function(result) {
+    var next     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul urmator")').attr('href'),
+        nextLink = matchSfastLinks(getPageSync(next));
+
+    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton');
+
+    $('#nextButton').click(function() {
+      chrome.storage.sync.set({ 'current': next });
+
+      return true;
+    });
+  });
 }
 
-var removeSuperwebMenu = function() {
+var handleSuperweb = function() {
   if ($('#html5_b').length === 0 && currentLink.includes('/3/')) {
     window.location.href = currentLink.replace('/3/', '/1/');
   }
 
-  var player1 = $('#jw6'),
-      player2 = $('#jw5'),
-      html5   = $('#html5');
-
-  var player = html5,
-      topbar = $('.hline');
-
-  if (player.length === 0) {
-    player = player2;
-  }
-
-  if (player.length === 0) {
-    player = player1;
-  }
-
   $('.all').remove();
+  
+  prepPrev();
+  prepNext();
 }
 
 if (currentLink.includes("/video/")) {
-  removeSuperwebMenu();
+  handleSuperweb();
 } else if (currentLink.includes("seriale2-") || currentLink.includes("filme-")) {
-  matchSfastLinks();
+  init();
+  getCurrentLink();
 } 
 
