@@ -41,7 +41,7 @@ var addDirectLink = function(link, text, upperElement, id, style) {
     text = 'Not available';
   }
 
-  var element = '<a id=' + id + ' href="' + link + '" style=' + style + '>' + text + '</a>';
+  var element = '<a id=' + id + ' href="' + link + '" style="' + style + '">' + text + '</a>';
   $(element).insertAfter(upperElement);
 }
 
@@ -56,7 +56,7 @@ var prepPrev = function() {
     var prev     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul anterior")').attr('href'),
         prevLink = matchSfastLinks(getPageSync(prev));
 
-    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton', 'margin: 10px;');
+    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton', 'padding: 10px; float: left;');
     
     $('#prevButton').click(function() {
       chrome.storage.sync.set({ 'current': prev });
@@ -71,7 +71,7 @@ var prepNext = function() {
     var next     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul urmator")').attr('href'),
         nextLink = matchSfastLinks(getPageSync(next));
 
-    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton');
+    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton', 'padding: 10px; float: right;');
 
     $('#nextButton').click(function() {
       chrome.storage.sync.set({ 'current': next });
