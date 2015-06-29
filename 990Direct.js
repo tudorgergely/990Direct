@@ -35,13 +35,13 @@ var matchSfastLinks = function(page) {
   return "";
 }
 
-var addDirectLink = function(link, text, upperElement, id, style) {
+var addDirectLink = function(link, text, upperElement, id) {
   if (link === '') {
     link = '#';
     text = 'Not available';
   }
 
-  var element = '<a id=' + id + ' href="' + link + '" style="' + style + '">' + text + '</a>';
+  var element = '<a id="' + id + '" class="button-9" href="' + link + '">' + text + '</a>';
   $(element).insertAfter(upperElement);
 }
 
@@ -56,7 +56,7 @@ var prepPrev = function() {
     var prev     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul anterior")').attr('href'),
         prevLink = matchSfastLinks(getPageSync(prev));
 
-    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton', 'padding: 10px; float: left;');
+    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton');
     
     $('#prevButton').click(function() {
       chrome.storage.sync.set({ 'current': prev });
@@ -71,7 +71,7 @@ var prepNext = function() {
     var next     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul urmator")').attr('href'),
         nextLink = matchSfastLinks(getPageSync(next));
 
-    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton', 'padding: 10px; float: right;');
+    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton');
 
     $('#nextButton').click(function() {
       chrome.storage.sync.set({ 'current': next });
