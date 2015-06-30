@@ -50,7 +50,7 @@ var addSuperwebNav = function(buttonId, buttonName) {
     var el = document.createElement('div');
     el.innerHTML = getPageSync(result.current);
 
-    var 990Link = Array.prototype.slice
+    var link990 = Array.prototype.slice
                 .call(el.querySelectorAll('a.episode_nextprev'))
                 .filter(function(e) {
                   if (e['innerText'] === buttonName) {
@@ -62,12 +62,12 @@ var addSuperwebNav = function(buttonId, buttonName) {
                       .slice(e['href'].indexOf('/video/') + 8);
                 });
 
-    var directLink = getDirectLink(getPageSync(990Link));
+    var directLink = getDirectLink(getPageSync(link990));
 
     addDirectLinkButton(directLink, buttonName, '.hline', buttonId);
 
     document.getElementById(buttonId).onclick = function() {
-      chrome.storage.sync.set({ 'current': 990Page });
+      chrome.storage.sync.set({ 'current': link990 });
 
       return true;
     };
@@ -75,7 +75,7 @@ var addSuperwebNav = function(buttonId, buttonName) {
 }
 
 var handleSuperweb = function() {
-  if (!window.location.includes('/video/')) {
+  if (!window.location.href.includes('/video/')) {
     return;
   }
 
@@ -98,7 +98,7 @@ var handle990 = function () {
 
   chrome.storage.sync.set({ 'current': window.location.href });
 
-  addDirectLinkButton(getDirectLink(getPageSync(currentLink)),
+  addDirectLinkButton(getDirectLink(getPageSync(window.location.href)),
                       'Link direct', '#content div');
 }
 
