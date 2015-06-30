@@ -1,16 +1,10 @@
-var directRegex = /\/video\/.*\.html/g,
-    currentLink = window.location.href;
-
-var init = function() {
-  chrome.storage.sync.set({ 'current': currentLink });
-}
 
 var getPageSync = function(link) {
-  var request = new XMLHttpRequest();
-
   if (link.length === 0) {
     return "";
   }
+
+  var request = new XMLHttpRequest();
 
   request.open('GET', link, false);
   request.send();
@@ -18,7 +12,7 @@ var getPageSync = function(link) {
   return request.responseText;
 }
 
-var matchSfastLinks = function(page) {
+var getDirectLink = function(page) {
   if (page.length === 0) {
     return "";
   }
@@ -26,89 +20,54 @@ var matchSfastLinks = function(page) {
   var el = document.createElement('div');
   el.innerHTML = page;
 
-  var link = el.querySelectorAll('a.link[href*="-sfast.html"]')[0].getAttribute('href'),
-      finalLink;
+  var finalLink,
+      link = el.querySelectorAll('a.link[href*="-sfast.html"]')[0]
+                .getAttribute('href');
 
   if (link !== undefined) {
-    finalLink = getPageSync('http://990.ro/' + link).match(directRegex).toString();
+    finalLink = getPageSync('http://990.ro/' + link).match(/\/video\/.*\.html/g).toString();
     finalLink = 'http://superweb.rol.ro' + finalLink.replace('/video/', '/video/3/');
-    
+
     return finalLink;
   }
 
   return "";
 }
 
-var addDirectLink = function(link, text, upperElement, id) {
-  if (link === '') {
-    link = '#';
-    text = 'Not available';
-  }
-
+var addDirectLinkButton = function(link, text, upperElement, id) {
   var element = '<a id="' + id + '" class="button-9" href="' + link + '">' + text + '</a>';
+
+  if (link === '') {
+    element = '<a id="' + id + '" href="#" class="button-9 disabledButton">Not available</a>';
+  }
 
   document.querySelector(upperElement)
           .insertAdjacentHTML('afterend', element);
 }
 
-var getCurrentLink = function() {
-  var currentDirectLink = matchSfastLinks(getPageSync(currentLink));
-  
-  addDirectLink(currentDirectLink, 'Link direct', '#content div');
-}
-
-var prepPrev = function() {
+var addSuperwebNav = function(buttonId, buttonName) {
   chrome.storage.sync.get('current', function(result) {
     var el = document.createElement('div');
     el.innerHTML = getPageSync(result.current);
 
-    var prev     = Array.prototype.slice
-                    .call(el.querySelectorAll('a.episode_nextprev'))
-                    .filter(function(e) {
-                      if (e['innerText'] === 'Episodul anterior') {
-                        return e;
-                      }
-                    })
-                    .map(function(e) {
-                      return 'http://990.ro/' + e['href']
-                          .slice(e['href'].indexOf('/video/') + 8);
-                    });
+    var 990Link = Array.prototype.slice
+                .call(el.querySelectorAll('a.episode_nextprev'))
+                .filter(function(e) {
+                  if (e['innerText'] === buttonName) {
+                    return e;
+                  }
+                })
+                .map(function(e) {
+                  return 'http://990.ro/' + e['href']
+                      .slice(e['href'].indexOf('/video/') + 8);
+                });
 
-    var prevLink = matchSfastLinks(getPageSync(prev));
+    var directLink = getDirectLink(getPageSync(990Link));
 
-    addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton');
-    
-    document.getElementById('prevButton').onclick = function() {
-      chrome.storage.sync.set({ 'current': prev });
+    addDirectLinkButton(directLink, buttonName, '.hline', buttonId);
 
-      return true;
-    };
-  });
-}
-
-var prepNext = function() {
-  chrome.storage.sync.get('current', function(result) {
-    var el = document.createElement('div');
-    el.innerHTML = getPageSync(result.current);
-    
-    var next     = Array.prototype.slice
-                    .call(el.querySelectorAll('a.episode_nextprev'))
-                    .filter(function(e) {
-                      if (e['innerText'] === 'Episodul urmator') {
-                        return e;
-                      }
-                    })
-                    .map(function(e) {
-                      return 'http://990.ro/' + e['href']
-                          .slice(e['href'].indexOf('/video/') + 8);
-                    });
-
-    var nextLink = matchSfastLinks(getPageSync(next));
-
-    addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton');
-
-    document.getElementById('nextButton').onclick = function() {
-      chrome.storage.sync.set({ 'current': next });
+    document.getElementById(buttonId).onclick = function() {
+      chrome.storage.sync.set({ 'current': 990Page });
 
       return true;
     };
@@ -116,21 +75,32 @@ var prepNext = function() {
 }
 
 var handleSuperweb = function() {
+  if (!window.location.includes('/video/')) {
+    return;
+  }
+
   if (document.getElementById('html5_b').length === 0 && currentLink.includes('/3/')) {
-    window.location.href = currentLink.replace('/3/', '/1/');
+    window.location.href = window.location.href.replace('/3/', '/1/');
   }
 
   var el = document.querySelector('.all');
   el.parentNode.removeChild(el);
-  
-  prepPrev();
-  prepNext();
+
+  addSuperwebNav('prevButton', 'Episodul anterior');
+  addSuperwebNav('nextButton', 'Episodul urmator');
 }
 
-if (currentLink.includes("/video/")) {
-  handleSuperweb();
-} else if (currentLink.includes("seriale2-") || currentLink.includes("filme-")) {
-  init();
-  getCurrentLink();
-} 
+var handle990 = function () {
+  if (!(window.location.href.includes("seriale2-")
+        || window.location.href.includes("filme-"))) {
+          return;
+        }
 
+  chrome.storage.sync.set({ 'current': window.location.href });
+
+  addDirectLinkButton(getDirectLink(getPageSync(currentLink)),
+                      'Link direct', '#content div');
+}
+
+handle990();
+handleSuperweb();

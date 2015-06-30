@@ -1,20 +1,30 @@
 .button-9 {
   display: inline-block;
   text-decoration: none;
-  background-color: #A5AAAA;
+  background-color: #4CAF50;
   vertical-align: text-center;
-  box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
-  color:#333;
-  background-color:#FA2;
-  border-radius:5px;
-  border:none;
-  font-family:'Helvetica Neue',Arial,sans-serif;
-  font-size:16px;
-  font-weight:700;
-  height:32px;
-  padding:4px 16px;
-  text-shadow:#FE6 0 1px 0;
+
+  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;
+  border-radius: 5px;
+  color: #fff;
+  border: none;
+
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+
+  height: 32px;
+  padding: 4px 16px;
+  text-shadow: #1B5E20 0 1px 0;
   margin: 10px;
+}
+
+.button-9:not(.disabledButton):hover {
+  box-shadow: rgba(0,0,0,0.2) 2px 2px 2px 2px;
+}
+
+.disabledButton {
+  background-color: #A5AAAA;
 }
 
 #prevButton {
