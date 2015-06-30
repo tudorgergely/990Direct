@@ -6,27 +6,31 @@ var init = function() {
 }
 
 var getPageSync = function(link) {
-  var page;
+  var request = new XMLHttpRequest();
 
-  $.ajax({
-    url: link,
-    type: 'get',
-    dataType: 'html',
-    async: false,
-    success: function (nextPage) {
-      page = nextPage;
-    }
-  });
+  if (link.length === 0) {
+    return "";
+  }
 
-  return page;
+  request.open('GET', link, false);
+  request.send();
+
+  return request.responseText;
 }
 
 var matchSfastLinks = function(page) {
-  var link = 'http://990.ro/' + $(page).find('a.link[href*="-sfast.html"]').attr('href'),
+  if (page.length === 0) {
+    return "";
+  }
+
+  var el = document.createElement('div');
+  el.innerHTML = page;
+
+  var link = el.querySelectorAll('a.link[href*="-sfast.html"]')[0].getAttribute('href'),
       finalLink;
 
   if (link !== undefined) {
-    finalLink = getPageSync(link).match(directRegex).toString();
+    finalLink = getPageSync('http://990.ro/' + link).match(directRegex).toString();
     finalLink = 'http://superweb.rol.ro' + finalLink.replace('/video/', '/video/3/');
     
     return finalLink;
@@ -42,51 +46,82 @@ var addDirectLink = function(link, text, upperElement, id) {
   }
 
   var element = '<a id="' + id + '" class="button-9" href="' + link + '">' + text + '</a>';
-  $(element).insertAfter(upperElement);
+
+  document.querySelector(upperElement)
+          .insertAdjacentHTML('afterend', element);
 }
 
 var getCurrentLink = function() {
   var currentDirectLink = matchSfastLinks(getPageSync(currentLink));
   
-  addDirectLink(currentDirectLink, 'Link direct', '#content div:first');
+  addDirectLink(currentDirectLink, 'Link direct', '#content div');
 }
 
 var prepPrev = function() {
   chrome.storage.sync.get('current', function(result) {
-    var prev     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul anterior")').attr('href'),
-        prevLink = matchSfastLinks(getPageSync(prev));
+    var el = document.createElement('div');
+    el.innerHTML = getPageSync(result.current);
+
+    var prev     = Array.prototype.slice
+                    .call(el.querySelectorAll('a.episode_nextprev'))
+                    .filter(function(e) {
+                      if (e['innerText'] === 'Episodul anterior') {
+                        return e;
+                      }
+                    })
+                    .map(function(e) {
+                      return 'http://990.ro/' + e['href']
+                          .slice(e['href'].indexOf('/video/') + 8);
+                    });
+
+    var prevLink = matchSfastLinks(getPageSync(prev));
 
     addDirectLink(prevLink, 'Previous episode', '.hline', 'prevButton');
     
-    $('#prevButton').click(function() {
+    document.getElementById('prevButton').onclick = function() {
       chrome.storage.sync.set({ 'current': prev });
 
       return true;
-    });
+    };
   });
 }
 
 var prepNext = function() {
   chrome.storage.sync.get('current', function(result) {
-    var next     = 'http://990.ro/' + $(getPageSync(result.current)).find('a.episode_nextprev:contains("Episodul urmator")').attr('href'),
-        nextLink = matchSfastLinks(getPageSync(next));
+    var el = document.createElement('div');
+    el.innerHTML = getPageSync(result.current);
+    
+    var next     = Array.prototype.slice
+                    .call(el.querySelectorAll('a.episode_nextprev'))
+                    .filter(function(e) {
+                      if (e['innerText'] === 'Episodul urmator') {
+                        return e;
+                      }
+                    })
+                    .map(function(e) {
+                      return 'http://990.ro/' + e['href']
+                          .slice(e['href'].indexOf('/video/') + 8);
+                    });
+
+    var nextLink = matchSfastLinks(getPageSync(next));
 
     addDirectLink(nextLink, 'Next episode', '.hline', 'nextButton');
 
-    $('#nextButton').click(function() {
+    document.getElementById('nextButton').onclick = function() {
       chrome.storage.sync.set({ 'current': next });
 
       return true;
-    });
+    };
   });
 }
 
 var handleSuperweb = function() {
-  if ($('#html5_b').length === 0 && currentLink.includes('/3/')) {
+  if (document.getElementById('html5_b').length === 0 && currentLink.includes('/3/')) {
     window.location.href = currentLink.replace('/3/', '/1/');
   }
 
-  $('.all').remove();
+  var el = document.querySelector('.all');
+  el.parentNode.removeChild(el);
   
   prepPrev();
   prepNext();

@@ -13,8 +13,8 @@
     "http://*/"
   ],
   "content_scripts": [ {
-    "js": [ "jquery.min.js", "990Direct.js" ],
-    "css": ["buttons.css"],
-    "matches": ["http://www.990.ro/*", "http://superweb.rol.ro/*"]
+    "js": [ "990Direct.js" ],
+    "css": [ "buttons.css" ],
+    "matches": [ "http://www.990.ro/*", "http://superweb.rol.ro/*" ]
   }]
 }
