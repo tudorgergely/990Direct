@@ -20,29 +20,34 @@ var getDirectLink = function(page) {
   var el = document.createElement('div');
   el.innerHTML = page;
 
-  var finalLink,
-      link = el.querySelectorAll('a.link[href*="-sfast.html"]')[0]
+  var link = el.querySelector('a.link[href*="-sfast.html"]')
                 .getAttribute('href');
 
   if (link !== undefined) {
-    finalLink = getPageSync('http://990.ro/' + link).match(/\/video\/.*\.html/g).toString();
-    finalLink = 'http://superweb.rol.ro' + finalLink.replace('/video/', '/video/3/');
-
-    return finalLink;
+    return 'http://superweb.rol.ro' +
+            getPageSync('http://990.ro/' + link)
+            .match(/\/video\/.*\.html/g)
+            .toString()
+            .replace('/video/', '/video/3/');
   }
 
   return "";
 }
 
 var addDirectLinkButton = function(link, text, upperElement, id) {
-  var element = '<a id="' + id + '" class="button-9" href="' + link + '">' + text + '</a>';
+  var el = document.createElement('a');
+
+  el.id = id;
+  el.setAttribute('href', link);
+  el.classList.add('button-9')
+  el.innerHTML = text;
 
   if (link === '') {
-    element = '<a id="' + id + '" href="#" class="button-9 disabledButton">Not available</a>';
+    el.style.visibility='hidden';
   }
 
   document.querySelector(upperElement)
-          .insertAdjacentHTML('afterend', element);
+          .insertAdjacentHTML('afterend', el.outerHTML);
 }
 
 var addSuperwebNav = function(buttonId, buttonName) {
@@ -79,7 +84,7 @@ var handleSuperweb = function() {
     return;
   }
 
-  if (document.getElementById('html5_b').length === 0 && currentLink.includes('/3/')) {
+  if (!document.getElementById('html5_b') && window.location.href.includes('/3/')) {
     window.location.href = window.location.href.replace('/3/', '/1/');
   }
 
@@ -92,9 +97,9 @@ var handleSuperweb = function() {
 
 var handle990 = function () {
   if (!(window.location.href.includes("seriale2-")
-        || window.location.href.includes("filme-"))) {
-          return;
-        }
+      || window.location.href.includes("filme-"))) {
+    return;
+  }
 
   chrome.storage.sync.set({ 'current': window.location.href });
 
