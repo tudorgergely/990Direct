@@ -96,15 +96,19 @@ var handleSuperweb = function() {
 }
 
 var handle990 = function () {
-  if (!(window.location.href.includes("seriale2-")
-      || window.location.href.includes("filme-"))) {
+  if (!(window.location.href.includes("seriale2-") ||
+        window.location.href.includes("filme-"))) {
     return;
   }
 
-  chrome.storage.sync.set({ 'current': window.location.href });
-
   addDirectLinkButton(getDirectLink(getPageSync(window.location.href)),
-                      'Link direct', '#content div');
+                      'Link direct', '#content div', 'directButton');
+
+  document.getElementById('directButton').onclick = function() {
+    chrome.storage.sync.set({ 'current': window.location.href });
+
+    return true;
+  };
 }
 
 handle990();
