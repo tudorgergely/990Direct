@@ -39,7 +39,8 @@ var addDirectLinkButton = function(link, text, upperElement, id) {
 
   el.id = id;
   el.setAttribute('href', link);
-  el.classList.add('button-9')
+  el.setAttribute('style',' display: inline-block;  text-decoration: none;  background-color: #4CAF50;  vertical-align: text-center;  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;  border-radius: 5px;  color: #fff;  border: none;  font-family: "Helvetica Neue", Arial, sans-serif;  font-size: 16px;  font-weight: 700;  height: 32px;  padding: 4px 16px;  text-shadow: #1B5E20 0 1px 0;  margin: 10px; ');  
+  //el.classList.add('button-9')
   el.innerHTML = text;
 
   if (link === '') {
@@ -95,16 +96,29 @@ var handleSuperweb = function() {
   addSuperwebNav('nextButton', 'Episodul urmator');
 }
 
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
 var handle990 = function () {
   if (!(window.location.href.includes("seriale2-") ||
         window.location.href.includes("filme-"))) {
     return;
   }
 
+  id = makeid();
+  
   addDirectLinkButton(getDirectLink(getPageSync(window.location.href)),
-                      'Link direct', '#content div', 'directButton');
+                      'Link direct', '#content div', id);
 
-  document.getElementById('directButton').onclick = function() {
+  document.getElementById(id).onclick = function() {
     chrome.storage.sync.set({ 'current': window.location.href });
 
     return true;
