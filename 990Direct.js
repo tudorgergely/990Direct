@@ -26,7 +26,7 @@ var getDirectLink = function(page) {
   if (link !== undefined) {
     return 'http://superweb.rol.ro' +
             getPageSync('http://www.990.ro/' + link)
-            .match(/\/video\/.*\.html/g)
+            .match(/\/video\/.*\.html/g)[0]
             .toString()
             .replace('/video/', '/video/3/');
   }
@@ -34,21 +34,30 @@ var getDirectLink = function(page) {
   return "";
 }
 
-var addDirectLinkButton = function(link, text, upperElement, id) {
-  var el = document.createElement('a');
-
+var addDirectLinkButton = function(link, text, upperElement, id, newCurrent) {
+  var el = document.createElement(makeid());
   el.id = id;
-  el.setAttribute('href', link);
   el.setAttribute('style',' display: inline-block;  text-decoration: none;  background-color: #4CAF50;  vertical-align: text-center;  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;  border-radius: 5px;  color: #fff;  border: none;  font-family: "Helvetica Neue", Arial, sans-serif;  font-size: 16px;  font-weight: 700;  height: 32px;  padding: 4px 16px;  text-shadow: #1B5E20 0 1px 0;  margin: 10px; ');  
-  //el.classList.add('button-9')
   el.innerHTML = text;
 
   if (link === '') {
-    el.style.visibility='hidden';
+    el.style.display = 'none';
   }
 
-  document.querySelector(upperElement)
-          .insertAdjacentHTML('afterend', el.outerHTML);
+  setInterval(function() {
+    if (document.getElementById(id) === null) {
+      document.querySelector(upperElement)
+              .insertAdjacentHTML('afterend', el.outerHTML); 
+
+      document.getElementById(id).onclick = function() {
+        chrome.storage.sync.set({ 'current': newCurrent });
+
+        window.location.href = link;
+
+        return true;
+      };
+    }
+  }, 100);
 }
 
 var addSuperwebNav = function(buttonId, buttonName) {
@@ -70,13 +79,7 @@ var addSuperwebNav = function(buttonId, buttonName) {
 
     var directLink = getDirectLink(getPageSync(link990));
 
-    addDirectLinkButton(directLink, buttonName, '.hline', buttonId);
-
-    document.getElementById(buttonId).onclick = function() {
-      chrome.storage.sync.set({ 'current': link990 });
-
-      return true;
-    };
+    addDirectLinkButton(directLink, buttonName, '.hline', buttonId, link990);
   });
 }
 
@@ -96,10 +99,9 @@ var handleSuperweb = function() {
   addSuperwebNav('nextButton', 'Episodul urmator');
 }
 
-function makeid()
-{
+function makeid() {
     var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     for( var i=0; i < 5; i++ )
         text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -113,16 +115,12 @@ var handle990 = function () {
     return;
   }
 
-  id = makeid();
-  
+  for (var i = 0; i < 9999; ++i) {
+    window.clearInterval(i);
+  }
+
   addDirectLinkButton(getDirectLink(getPageSync(window.location.href)),
-                      'Link direct', '#content div', id);
-
-  document.getElementById(id).onclick = function() {
-    chrome.storage.sync.set({ 'current': window.location.href });
-
-    return true;
-  };
+                      'Link direct', '#content div', makeid(), window.location.href);
 }
 
 handle990();
