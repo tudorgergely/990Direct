@@ -37,7 +37,7 @@ var getDirectLink = function(page) {
 var addDirectLinkButton = function(link, text, upperElement, id, newCurrent) {
   var el = document.createElement(makeid());
   el.id = id;
-  el.setAttribute('style', 'cursor: pointer; display: inline-block;  text-decoration: none;  background-color: #4CAF50;  vertical-align: text-center;  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;  border-radius: 5px;  color: #fff;  border: none;  font-family: "Helvetica Neue", Arial, sans-serif;  font-size: 16px;  font-weight: 700;  height: 32px;  padding: 4px 16px;  text-shadow: #1B5E20 0 1px 0;  margin: 10px; ');  
+  el.setAttribute('style',' display: inline-block;  text-decoration: none;  background-color: #4CAF50;  vertical-align: text-center;  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;  border-radius: 5px;  color: #fff;  border: none;  font-family: "Helvetica Neue", Arial, sans-serif;  font-size: 16px;  font-weight: 700;  height: 32px;  padding: 4px 16px;  text-shadow: #1B5E20 0 1px 0;  margin: 10px; ');  
   el.innerHTML = text;
 
   if (link === '') {
@@ -110,10 +110,6 @@ function makeid() {
 }
 
 var handle990 = function () {
-  for (var i = 0; i < 9999; ++i) {
-    window.clearInterval(i);
-  }
-
   if (!(window.location.href.includes("seriale2-") ||
         window.location.href.includes("filme-"))) {
     return;
@@ -125,5 +121,18 @@ var handle990 = function () {
                       makeid(), window.location.href);
 }
 
+var handleAdds = function () {
+  for (var i = 0; i < 9999; ++i) {
+    window.clearInterval(i);
+  }
+  
+  var disa = document.getElementsByClassName('disa')[0];
+
+  if (disa !== undefined) {
+    disa.parentNode.removeChild(disa);
+  }
+}
+
+handleAdds();
 handle990();
 handleSuperweb();
