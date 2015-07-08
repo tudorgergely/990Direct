@@ -25,7 +25,7 @@ var getDirectLink = function(page) {
 
   if (link !== undefined) {
     return 'http://superweb.rol.ro' +
-            getPageSync('http://990.ro/' + link)
+            getPageSync('http://www.990.ro/' + link)
             .match(/\/video\/.*\.html/g)
             .toString()
             .replace('/video/', '/video/3/');
