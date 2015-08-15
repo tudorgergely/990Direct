@@ -1,4 +1,3 @@
-
 var getPageSync = function(link) {
   if (link.length === 0) {
     return "";
@@ -68,9 +67,6 @@ var addSuperwebNav = function(buttonId, buttonName) {
     var el = document.createElement('div');
     el.innerHTML = getPageSync(result.current);
 
-    console.log(el);
-    console.log(el.querySelectorAll('a.episode_nextprev'));
-
     var link990 = Array.prototype.slice
                 .call(el.querySelectorAll('a.episode_nextprev'))
                 .filter(function(e) {
@@ -83,11 +79,7 @@ var addSuperwebNav = function(buttonId, buttonName) {
                       .slice(e['href'].indexOf('/video/') + 8);
                 });
 
-    console.log(link990);
-
     var directLink = getDirectLink(getPageSync(link990));
-
-    console.log(directLink);
 
     addDirectLinkButton(directLink, buttonName, '.hline', buttonId, link990);
   });
@@ -109,17 +101,18 @@ var handleSuperweb = function() {
   addSuperwebNav('nextButton', 'Episodul urmator');
 }
 
-function makeid() {
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+var makeid = function() {
+    var text = "",
+        possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    for( var i=0; i < 5; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    for (var i = 0; i < 5; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
 
     return text;
 }
 
-var handle990 = function () {
+var handle990 = function() {
   for (var i = 0; i < 9999; ++i) {
     window.clearInterval(i);
   }
