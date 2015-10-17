@@ -19,7 +19,7 @@ var getDirectLink = function(page) {
   var el = document.createElement('div');
   el.innerHTML = page;
 
-  var link = el.querySelector('a.link[href*="-sfast.html"]')
+  var link = el.querySelector('a.link[href*="-sfast"]')
                 .getAttribute('href');
 
   if (link !== undefined) {
@@ -27,7 +27,7 @@ var getDirectLink = function(page) {
             getPageSync('http://www.990.ro/' + link)
             .match(/\/video\/.*\.html/g)[0]
             .toString()
-            .replace('/video/', '/video/3/');
+            .replace(/video\/\d/, 'video/3');
   }
 
   return "";
