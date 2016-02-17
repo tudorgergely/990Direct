@@ -1,7 +1,7 @@
 {
   "name": "990 Direct",
   "manifest_version": 2,
-  "version": "1.2.3",
+  "version": "1.3",
   "description": "Gets you the direct link to 990.ro tv series/films",
   "browser_action": {
     "name": "990 Direct",
@@ -10,13 +10,14 @@
   },
   "permissions": [
     "storage",
-    "http://*/"
+    "http://*/",
+    "https://*/"
   ],
   "content_scripts": [ {
     "js": [ "990Direct.js" ],
     "css": [ "buttons.css" ],
     "run_at": "document_end",
-    "matches": [ "http://www.990.ro/*", "http://superweb.rol.ro/*" ]
+    "matches": [ "http://www.990.ro/*", "http://superweb.rol.ro/*", "http://www.mastervid.com/*", "https://openload.co/*" ]
   }],
   "web_accessible_resources": [ "adb.js" ]
 }
