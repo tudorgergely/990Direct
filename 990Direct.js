@@ -72,7 +72,7 @@ var addDirectLinkButton = function (link, text, upperElement, id, newCurrent) {
     }, 100);
 }
 
-var addSuperwebNav = function (buttonId, buttonName) {
+var addSuperwebNav = function (buttonId, buttonName, element) {
     chrome.storage.sync.get('current', function (result) {
         var el = getPageSync(result.current);
 
@@ -84,13 +84,22 @@ var addSuperwebNav = function (buttonId, buttonName) {
                 }
             })
             .map(function (e) {
-                return 'http://990.ro/' + e['href']
-                    .slice(e['href'].indexOf('/video/') + 8);
+				var lnk = "";
+				if (e.getAttribute('href').indexOf('/video/') > -1)
+				{
+					lnk = 'http://990.ro/' + e.getAttribute('href')
+                    .slice(e.getAttribute('href').indexOf('/video/') + 8);
+				}
+				else
+				{
+					lnk = 'http://990.ro/' + e.getAttribute('href');
+				}
+                return lnk;
             });
 
         var directLink = getDirectLink(getPageSync(link990));
 
-        addDirectLinkButton(directLink, buttonName, '.hline', buttonId, link990);
+        addDirectLinkButton(directLink, buttonName, element, buttonId, link990);
     });
 }
 
@@ -106,8 +115,8 @@ var handleSuperweb = function () {
     var el = document.querySelector('.all');
     el.parentNode.removeChild(el);
 
-    addSuperwebNav('prevButton', 'Episodul anterior');
-    addSuperwebNav('nextButton', 'Episodul urmator');
+    addSuperwebNav('prevButton', 'Episodul anterior', '.hline');
+    addSuperwebNav('nextButton', 'Episodul urmator', '.hline');
 }
 
 var handleMastervid = function () {
@@ -115,11 +124,14 @@ var handleMastervid = function () {
         return;
     }
 
-    var link = document.querySelectorAll('iframe')[0].src;
+	addSuperwebNav('prevButton', 'Episodul anterior', 'ul');
+    addSuperwebNav('nextButton', 'Episodul urmator', 'ul');
+	
+    //var link = document.querySelectorAll('iframe')[0].src;
 
-    if (link) {
-        window.location.href = link;
-    }
+    //if (link) {
+    //    window.location.href = link;
+    //}
 }
 
 var handleOpenload = function () {
