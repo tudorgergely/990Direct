@@ -1,177 +1,110 @@
-var getPageSync = function (link) {
-    if (link.length === 0) {
-        return "";
-    }
+/* global chrome */
+/* global fetch */
+'use strict';
+var getPage = function (link) {
+    return fetch(link)
+        .then(response => response.text())
+        .then(pageHtml => {
+            var el = document.createElement('div');
+            el.innerHTML = pageHtml;
+            return el;
+        });
+}
 
-    var request = new XMLHttpRequest();
-
-    request.open('GET', link, false);
-    request.send();
-
-    var el = document.createElement('div');
-    el.innerHTML = request.responseText;
-
-    return el;
+var getPlayerLink = function (page) {
+    var finalLink = page.querySelector('.player5x>a').href;
+    return finalLink.slice(finalLink.lastIndexOf('http'));
 }
 
 var getDirectLink = function (page) {
-    if (!page) {
-        return "";
-    }
+    if (!page) return "";
 
-    var superweb = page.querySelector('a.link[href*="-sfast"]'),
-        mastervid = page.querySelector('a.link[href*="-smastervid"]');
+    var firstLink = Array.prototype.slice.call(page.querySelectorAll('.linkviz a.link'))
+        .map(el => 'http://www.990.ro/' + el.getAttribute('href'))
+        .filter((el, idx, arr) => !el.includes('openload') && arr.indexOf(el) === idx)[0];
 
-    if (superweb) {
-        return 'http://superweb.rol.ro' +
-            getPageSync('http://www.990.ro/' + superweb.getAttribute('href'))
-                .querySelector('.player5x>a')
-                .href
-                .toString()
-                .match(/\/video\/.*\.html/g)[0]
-                .replace(/video\/\d/, 'video/3');
-    }
-
-    if (mastervid) {
-        return getPageSync('http://www.990.ro/' + mastervid.getAttribute('href'))
-            .querySelector('.player5x>a')
-            .href
-            .toString()
-            .match(/http:\/\/www.mastervid.com.*/);
-    }
-
-return "";
+    return getPage(firstLink)
+        .then(page => getPlayerLink(page));
 }
 
-var addDirectLinkButton = function (link, text, upperElement, id, newCurrent) {
-    var el = document.createElement(makeid());
-    el.id = id;
-    el.setAttribute('style', 'z-index: 9999999; cursor: pointer; display: inline-block;  text-decoration: none;  background-color: #4CAF50;  vertical-align: text-center;  box-shadow: rgba(0,0,0,0.2) 0 1px 0 0;  border-radius: 5px;  color: #fff;  border: none;  font-family: "Helvetica Neue", Arial, sans-serif;  font-size: 16px;  font-weight: 700;  height: 32px;  padding: 4px 16px;  text-shadow: #1B5E20 0 1px 0;  margin: 10px; ');
-    el.innerHTML = text;
+var createButton = function (buttonName, buttonExtraStyle) {
+    var el = document.createElement('button');
+    el.setAttribute('style', 'z-index: 9999999; position: fixed; background-color: white; ' +
+        'border: 1px solid #ccc; border-radius: 4px; height: 32px;' +
+        buttonExtraStyle);
+    el.innerHTML = buttonName;
+    return el;
+}
 
-    if (link === '') {
-        el.style.display = 'none';
-    }
+var addNav = function (linksPage, buttonName, buttonStyle) {
+    var link990 = Array.prototype.slice
+        .call(linksPage.querySelectorAll('a.episode_nextprev'))
+        .filter(e => e['innerText'] === buttonName)
+        .map(e => 'http://www.990.ro/' + e.getAttribute('href'))[0];
+       
+    if (!link990) return;
+    
+    getPage(link990).then(page => getDirectLink(page))
+        .then(link => {
+            if (!link) return;
 
-    setInterval(function () {
-        if (document.getElementById(id) === null) {
-            document.querySelector(upperElement)
-                .insertAdjacentHTML('afterend', el.outerHTML);
-
-            document.getElementById(id).onclick = function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                chrome.storage.sync.set({ 'current': newCurrent });
+            var el = createButton(buttonName, buttonStyle);
+            el.addEventListener('click', function () {
+                chrome.storage.local.set({ 'current': link990 });
 
                 window.location.href = link;
-
-                return true;
-            };
-        }
-    }, 100);
+            });
+            document.body.insertBefore(el, document.body.firstChild);
+        });
 }
 
-var addSuperwebNav = function (buttonId, buttonName, element) {
-    chrome.storage.sync.get('current', function (result) {
-        var el = getPageSync(result.current);
+var addNavigationButtons = function () {
+    var onVideoSite = ['superweb.', 'mastervid.com', 'thevideo.me',
+        'openload.co', 'gorillavid.in', 'daclips.in', 'allmyvideos.net', 'vodlocker.com',
+        'movpod.in', 'vidbull.com', 'streamin.to', 'filehoot.com', 'vidzi.tv', 'vidspot.net',
+        'vidto.me']
+        .some(website => window.location.href.includes(website));
+    if (!onVideoSite) return;
 
-        var link990 = Array.prototype.slice
-            .call(el.querySelectorAll('a.episode_nextprev'))
-            .filter(function (e) {
-                if (e['innerText'] === buttonName) {
-                    return e;
-                }
-            })
-            .map(function (e) {
-				var lnk = "";
-				if (e.getAttribute('href').indexOf('/video/') > -1)
-				{
-					lnk = 'http://990.ro/' + e.getAttribute('href')
-                    .slice(e.getAttribute('href').indexOf('/video/') + 8);
-				}
-				else
-				{
-					lnk = 'http://990.ro/' + e.getAttribute('href');
-				}
-                return lnk;
+    chrome.storage.local.get('current', function (result) {
+        getPage(result.current)
+            .then(linksPage => {
+                addNav(linksPage, 'Episodul anterior', 'top:0;left: 0;');
+                addNav(linksPage, 'Episodul urmator', 'top:0;right: 0;');
+                var button = createButton('Pagina 990', 'bottom: 0; left: 0;');
+                button.addEventListener('click', function () {
+                    chrome.storage.local.set({ 'fromVideo': true });
+                    window.location.href = result.current;
+                });
+                document.body.insertBefore(button, document.body.firstChild);
             });
-
-        var directLink = getDirectLink(getPageSync(link990));
-
-        addDirectLinkButton(directLink, buttonName, element, buttonId, link990);
     });
 }
 
-var handleSuperweb = function () {
-    if (!window.location.href.includes('/video/')) {
-        return;
-    }
-
-    if (!document.getElementById('html5_b') && window.location.href.includes('/3/')) {
-        window.location.href = window.location.href.replace('/3/', '/1/');
-    }
-
-    var el = document.querySelector('.all');
-    el.parentNode.removeChild(el);
-
-    addSuperwebNav('prevButton', 'Episodul anterior', '.hline');
-    addSuperwebNav('nextButton', 'Episodul urmator', '.hline');
-}
-
-var handleMastervid = function () {
-    if (!window.location.href.includes('mastervid.com/')) {
-        return;
-    }
-
-	addSuperwebNav('prevButton', 'Episodul anterior', 'ul');
-    addSuperwebNav('nextButton', 'Episodul urmator', 'ul');
-	
-    //var link = document.querySelectorAll('iframe')[0].src;
-
-    //if (link) {
-    //    window.location.href = link;
-    //}
-}
-
-var handleOpenload = function () {
-    if (!window.location.href.includes('openload.co')) {
-        return;
-    }
-
-    var el = document.querySelector('#videooverlay');
-    el.parentNode.removeChild(el);
-
-    addSuperwebNav('prevButton', 'Episodul anterior');
-    addSuperwebNav('nextButton', 'Episodul urmator');
-}
-
-var makeid = function () {
-    var text = "",
-        possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    for (var i = 0; i < 5; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return text;
-}
-
 var handle990 = function () {
-    for (var i = 0; i < 9999; ++i) {
-        window.clearInterval(i);
-    }
-
     if (!(window.location.href.includes("seriale2-") ||
         window.location.href.includes("filme-"))) {
         return;
     }
+    chrome.storage.local.get('fromVideo', function (result) {
+        chrome.storage.local.set({ 'current': window.location.href });
+        if (result.fromVideo) {
+            chrome.storage.local.set({ 'fromVideo': false });
+        } else {
+            getPage(window.location.href)
+                .then(page => getDirectLink(page))
+                .then(link => window.open(link, '_blank'));
+        }
+    });
+}
 
-    chrome.storage.sync.set({ 'current': window.location.href });
-    window.open(getDirectLink(getPageSync(window.location.href)), '_blank');
+var handle990Player = function () {
+    if (!window.location.href.includes('player-film-') &&
+        !window.location.href.includes('player-serial-')) return;
+
+    window.location.href = getPlayerLink(document);
 }
 
 handle990();
-handleSuperweb();
-handleMastervid();
-handleOpenload();
+handle990Player();
+addNavigationButtons();
